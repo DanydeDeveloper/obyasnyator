@@ -1,22 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  Send,
-  Sparkles,
-  BookMarked,
-  HelpCircle,
-  Layers,
-  Dumbbell,
-  ChevronRight,
-  Bot,
-  User,
-} from "lucide-react";
+import { Send, Sparkles, BookMarked, HelpCircle, Layers, Dumbbell, ChevronRight, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { makeMessage, makeStudyNote } from "@/lib/session";
-import type { TutorMessage, DocumentChunk, StudyNote, ProcessedDocument } from "@/types";
+import type { TutorMessage, StudyNote, ProcessedDocument } from "@/types";
 
 interface TutorPanelProps {
   document: ProcessedDocument;
@@ -30,9 +20,7 @@ interface TutorPanelProps {
   onOpenPractice: () => void;
 }
 
-// Only chat-based quick actions remain here.
-// Quiz / Flashcards / Practice open dedicated modals via callbacks.
-const EXPLAIN_PROMPT = "Explain the main ideas in this material in simple terms, step by step.";
+const EXPLAIN_PROMPT = "Объясни главные идеи этого материала простыми словами, шаг за шагом.";
 
 export function TutorPanel({
   document,
@@ -51,15 +39,13 @@ export function TutorPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Handle pending explain from document selection
   useEffect(() => {
     if (pendingExplain) {
-      sendMessage(`Explain this in simple terms:\n\n"${pendingExplain}"`);
+      sendMessage(`Объясни это простыми словами:\n\n"${pendingExplain}"`);
       onPendingExplainConsumed();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,23 +71,20 @@ export function TutorPanel({
           body: JSON.stringify({
             message: trimmed,
             chunks: document.chunks,
-            history: nextMessages.slice(-10).map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            history: nextMessages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
           }),
         });
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? "The AI tutor is unavailable. Please try again.");
+          throw new Error(data.error ?? "AI тьютор недоступен. Попробуй ещё раз.");
         }
 
         const { content, sourceChunkIds } = await res.json();
         const assistantMsg = makeMessage("assistant", content, sourceChunkIds);
         onMessagesChange([...nextMessages, assistantMsg]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setError(err instanceof Error ? err.message : "Что-то пошло не так.");
       } finally {
         setLoading(false);
       }
@@ -140,31 +123,31 @@ export function TutorPanel({
           <div className="w-6 h-6 rounded-md bg-brand-600 flex items-center justify-center">
             <Bot size={13} className="text-white" />
           </div>
-          <span className="text-sm font-semibold text-[var(--text-1)]">AI Tutor</span>
+          <span className="text-sm font-semibold text-[var(--text-1)]">AI Тьютор</span>
         </div>
         <button
           onClick={saveLastResponse}
-          title="Save last response to study notes"
+          title="Сохранить последний ответ в заметки"
           className="flex items-center gap-1.5 text-xs text-[var(--text-2)] hover:text-brand-600 transition-colors px-2 py-1 rounded-md hover:bg-brand-50"
         >
           <BookMarked size={13} />
-          Save
+          Сохранить
         </button>
       </div>
 
       {/* Quick actions */}
       <div className="px-3 py-2.5 border-b border-[var(--border)] flex gap-1.5 flex-wrap">
         <QuickBtn icon={<Sparkles size={13} />} disabled={loading} onClick={() => sendMessage(EXPLAIN_PROMPT)}>
-          Explain
+          Объяснить
         </QuickBtn>
         <QuickBtn icon={<HelpCircle size={13} />} onClick={onOpenQuiz}>
-          Quiz me
+          Квиз
         </QuickBtn>
         <QuickBtn icon={<Layers size={13} />} onClick={onOpenFlashcards}>
-          Flashcards
+          Карточки
         </QuickBtn>
         <QuickBtn icon={<Dumbbell size={13} />} onClick={onOpenPractice}>
-          Practice
+          Практика
         </QuickBtn>
       </div>
 
@@ -185,7 +168,7 @@ export function TutorPanel({
             </div>
             <div className="flex items-center gap-2 py-2 px-3 rounded-xl bg-[var(--bg-base)] text-sm text-[var(--text-3)]">
               <Spinner size="sm" />
-              <span>Thinking…</span>
+              <span>Думаю…</span>
             </div>
           </div>
         )}
@@ -208,7 +191,7 @@ export function TutorPanel({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything about your notes…"
+            placeholder="Спроси что-нибудь о твоих конспектах…"
             className="flex-1 resize-none rounded-xl border border-[var(--border-strong)] bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 leading-relaxed max-h-40 overflow-y-auto"
             style={{ minHeight: "42px" }}
           />
@@ -224,105 +207,15 @@ export function TutorPanel({
           </Button>
         </form>
         <p className="text-[11px] text-[var(--text-3)] mt-1.5 text-center">
-          Answers are grounded in your uploaded material
+          Ответы основаны на твоём загруженном материале
         </p>
       </div>
     </div>
   );
 }
 
-function MessageBubble({ message }: { message: TutorMessage }) {
-  const isUser = message.role === "user";
-
-  return (
-    <div className={cn("flex items-start gap-2.5", isUser && "flex-row-reverse")}>
-      {/* Avatar */}
-      <div
-        className={cn(
-          "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5",
-          isUser ? "bg-[var(--bg-base)] border border-[var(--border)]" : "bg-brand-600"
-        )}
-      >
-        {isUser ? (
-          <User size={12} className="text-[var(--text-2)]" />
-        ) : (
-          <Bot size={12} className="text-white" />
-        )}
-      </div>
-
-      {/* Bubble */}
-      <div
-        className={cn(
-          "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
-          isUser
-            ? "bg-brand-600 text-white rounded-tr-sm"
-            : "bg-[var(--bg-base)] text-[var(--text-1)] rounded-tl-sm"
-        )}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div
-            className="prose-ai"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function EmptyState({
-  docName,
-  onAction,
-}: {
-  docName: string;
-  onAction: (prompt: string) => void;
-}) {
-  const suggestions = [
-    "What are the main ideas in this material?",
-    "Explain the most important concept simply.",
-    "What should I focus on to understand this?",
-  ];
-
-  return (
-    <div className="space-y-4 py-2">
-      <div className="flex items-start gap-2.5">
-        <div className="w-6 h-6 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <Bot size={12} className="text-white" />
-        </div>
-        <div className="bg-[var(--bg-base)] rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm text-[var(--text-1)]">
-          <p>
-            Hi! I've read <strong>{docName.replace(/\.[^.]+$/, "")}</strong>. Ready to help
-            you understand and practice the material.
-          </p>
-          <p className="mt-1.5 text-[var(--text-2)]">
-            Use the quick actions above, or ask me anything below.
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-1.5 pl-8">
-        {suggestions.map((s) => (
-          <button
-            key={s}
-            onClick={() => onAction(s)}
-            className="w-full flex items-center gap-2 text-left text-xs text-[var(--text-2)] hover:text-brand-600 hover:bg-brand-50 px-3 py-2 rounded-lg transition-colors border border-[var(--border)] bg-white"
-          >
-            <ChevronRight size={12} className="flex-shrink-0 text-[var(--text-3)]" />
-            {s}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function QuickBtn({
-  icon,
-  children,
-  onClick,
-  disabled,
+  icon, children, onClick, disabled,
 }: {
   icon: React.ReactNode;
   children: React.ReactNode;
@@ -341,13 +234,67 @@ function QuickBtn({
   );
 }
 
-// Very lightweight markdown renderer (bold, italic, lists, inline code)
-// Avoids adding a heavy markdown library dependency for MVP
+function MessageBubble({ message }: { message: TutorMessage }) {
+  const isUser = message.role === "user";
+  return (
+    <div className={cn("flex items-start gap-2.5", isUser && "flex-row-reverse")}>
+      <div className={cn(
+        "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5",
+        isUser ? "bg-[var(--bg-base)] border border-[var(--border)]" : "bg-brand-600"
+      )}>
+        {isUser ? <User size={12} className="text-[var(--text-2)]" /> : <Bot size={12} className="text-white" />}
+      </div>
+      <div className={cn(
+        "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+        isUser ? "bg-brand-600 text-white rounded-tr-sm" : "bg-[var(--bg-base)] text-[var(--text-1)] rounded-tl-sm"
+      )}>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <div className="prose-ai" dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ docName, onAction }: { docName: string; onAction: (prompt: string) => void }) {
+  const suggestions = [
+    "Какие главные идеи в этом материале?",
+    "Объясни самое важное понятие простыми словами.",
+    "На что обратить внимание, чтобы понять тему?",
+  ];
+
+  return (
+    <div className="space-y-4 py-2">
+      <div className="flex items-start gap-2.5">
+        <div className="w-6 h-6 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Bot size={12} className="text-white" />
+        </div>
+        <div className="bg-[var(--bg-base)] rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm text-[var(--text-1)]">
+          <p>Привет! Я прочитал <strong>{docName.replace(/\.[^.]+$/, "")}</strong>. Готов помочь разобраться в материале и потренироваться.</p>
+          <p className="mt-1.5 text-[var(--text-2)]">Используй кнопки выше или задай вопрос ниже.</p>
+        </div>
+      </div>
+      <div className="space-y-1.5 pl-8">
+        {suggestions.map((s) => (
+          <button
+            key={s}
+            onClick={() => onAction(s)}
+            className="w-full flex items-center gap-2 text-left text-xs text-[var(--text-2)] hover:text-brand-600 hover:bg-brand-50 px-3 py-2 rounded-lg transition-colors border border-[var(--border)] bg-white"
+          >
+            <ChevronRight size={12} className="flex-shrink-0 text-[var(--text-3)]" />
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function renderMarkdown(text: string): string {
   return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")

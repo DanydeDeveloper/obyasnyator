@@ -20,13 +20,11 @@ export default function LandingPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Demo shortcut ──────────────────────────────────────────────────────────
   const openDemo = () => {
     sessionStorage.setItem("__demo__", "1");
     router.push("/workspace");
   };
 
-  // ── File handling ──────────────────────────────────────────────────────────
   const handleFile = useCallback(
     async (file: File) => {
       const ext = file.name.toLowerCase();
@@ -34,11 +32,11 @@ export default function LandingPage() {
       const validType = ACCEPTED_TYPES.includes(file.type) || validExt;
 
       if (!validType) {
-        setError(`Unsupported file type. Please upload a PDF, TXT, or MD file.`);
+        setError("Неподдерживаемый формат. Загрузи PDF, TXT или MD файл.");
         return;
       }
       if (file.size > 20 * 1024 * 1024) {
-        setError("File is too large. Maximum size is 20 MB.");
+        setError("Файл слишком большой. Максимальный размер — 20 МБ.");
         return;
       }
 
@@ -52,14 +50,14 @@ export default function LandingPage() {
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? "Upload failed. Please try again.");
+          throw new Error(data.error ?? "Ошибка загрузки. Попробуй ещё раз.");
         }
 
         const { document } = await res.json();
         sessionStorage.setItem("__doc__", JSON.stringify(document));
         router.push("/workspace");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setError(err instanceof Error ? err.message : "Что-то пошло не так.");
       } finally {
         setUploading(false);
       }
@@ -70,7 +68,7 @@ export default function LandingPage() {
   const handleTextSubmit = async () => {
     const text = pastedText.trim();
     if (!text || text.length < 50) {
-      setError("Please paste at least 50 characters of notes.");
+      setError("Вставь не менее 50 символов текста.");
       return;
     }
 
@@ -81,24 +79,23 @@ export default function LandingPage() {
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, name: "My Notes" }),
+        body: JSON.stringify({ text, name: "Мои заметки" }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Upload failed.");
+        throw new Error(data.error ?? "Ошибка загрузки.");
       }
 
       const { document } = await res.json();
       sessionStorage.setItem("__doc__", JSON.stringify(document));
       router.push("/workspace");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : "Что-то пошло не так.");
     } finally {
       setUploading(false);
     }
   };
 
-  // ── Drag & drop ────────────────────────────────────────────────────────────
   const onDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const onDragLeave = () => setIsDragging(false);
   const onDrop = (e: React.DragEvent) => {
@@ -122,26 +119,24 @@ export default function LandingPage() {
           onClick={openDemo}
           className="text-sm text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
         >
-          Try demo →
+          Демо →
         </button>
       </nav>
 
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
         <div className="w-full max-w-2xl space-y-10">
-          {/* Headline */}
           <div className="text-center space-y-3">
             <h1 className="text-4xl font-bold tracking-tight text-[var(--text-1)] leading-tight">
-              Your notes,{" "}
-              <span className="text-brand-600">explained by AI</span>
+              Твои конспекты,{" "}
+              <span className="text-brand-600">объяснённые AI</span>
             </h1>
             <p className="text-lg text-[var(--text-2)] leading-relaxed max-w-lg mx-auto">
-              Upload any study material and get step-by-step explanations, quizzes,
-              and flashcards — all grounded in your own content.
+              Загрузи любой учебный материал и получай пошаговые объяснения,
+              тесты и карточки — всё основано на твоём контенте.
             </p>
           </div>
 
-          {/* Upload area */}
           {!showPaste ? (
             <div className="space-y-3">
               <div
@@ -159,7 +154,7 @@ export default function LandingPage() {
                 {uploading ? (
                   <div className="flex flex-col items-center gap-3">
                     <Spinner size="lg" />
-                    <p className="text-sm text-[var(--text-2)]">Processing your document…</p>
+                    <p className="text-sm text-[var(--text-2)]">Обрабатываю документ…</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
@@ -176,13 +171,13 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <p className="font-medium text-[var(--text-1)]">
-                        {isDragging ? "Drop to upload" : "Drop your file here"}
+                        {isDragging ? "Отпусти для загрузки" : "Перетащи файл сюда"}
                       </p>
                       <p className="text-sm text-[var(--text-2)] mt-0.5">
-                        or <span className="text-brand-600 font-medium">browse files</span>
+                        или <span className="text-brand-600 font-medium">выбери файл</span>
                       </p>
                     </div>
-                    <p className="text-xs text-[var(--text-3)]">PDF · TXT · MD — up to 20 MB</p>
+                    <p className="text-xs text-[var(--text-3)]">PDF · TXT · MD — до 20 МБ</p>
                   </div>
                 )}
                 <input
@@ -199,7 +194,7 @@ export default function LandingPage() {
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-[var(--border)]" />
-                <span className="text-xs text-[var(--text-3)]">or</span>
+                <span className="text-xs text-[var(--text-3)]">или</span>
                 <div className="flex-1 h-px bg-[var(--border)]" />
               </div>
 
@@ -208,15 +203,14 @@ export default function LandingPage() {
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--border-strong)] bg-white text-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-gray-50 transition-colors"
               >
                 <FileText size={15} />
-                Paste notes as text
+                Вставить текст конспекта
               </button>
             </div>
           ) : (
-            /* Paste text area */
             <div className="space-y-3">
               <textarea
                 className="w-full h-52 rounded-xl border border-[var(--border-strong)] bg-white px-4 py-3 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1"
-                placeholder="Paste your lecture notes, study material, or any text here…"
+                placeholder="Вставь сюда конспект лекции, учебный материал или любой текст…"
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 autoFocus
@@ -227,7 +221,7 @@ export default function LandingPage() {
                   size="md"
                   onClick={() => { setShowPaste(false); setPastedText(""); setError(null); }}
                 >
-                  ← Back
+                  ← Назад
                 </Button>
                 <Button
                   variant="primary"
@@ -237,14 +231,13 @@ export default function LandingPage() {
                   onClick={handleTextSubmit}
                   className="flex-1"
                 >
-                  Start learning
+                  Начать обучение
                   <ChevronRight size={16} />
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <div className="flex items-start gap-2.5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700 animate-fade-in">
               <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
@@ -260,18 +253,18 @@ export default function LandingPage() {
           {[
             {
               icon: <BookOpen size={18} />,
-              title: "Understand deeply",
-              desc: "Step-by-step explanations grounded in your material",
+              title: "Глубокое понимание",
+              desc: "Пошаговые объяснения, основанные на твоём материале",
             },
             {
               icon: <Zap size={18} />,
-              title: "Test yourself",
-              desc: "Auto-generated quizzes and flashcards from your notes",
+              title: "Проверь себя",
+              desc: "Автоматические тесты и карточки из твоих конспектов",
             },
             {
               icon: <FileText size={18} />,
-              title: "Save insights",
-              desc: "Collect AI explanations into export-ready study notes",
+              title: "Сохраняй инсайты",
+              desc: "Собирай объяснения AI в учебные заметки и экспортируй",
             },
           ].map((f) => (
             <div key={f.title} className="space-y-2">

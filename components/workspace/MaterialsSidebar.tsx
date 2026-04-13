@@ -42,7 +42,7 @@ export function MaterialsSidebar({
             </p>
             {document.pageCount && (
               <p className="text-[11px] text-[var(--text-3)] mt-0.5">
-                {document.pageCount} pages · {document.chunks.length} sections
+                {document.pageCount} стр. · {document.chunks.length} разделов
               </p>
             )}
           </div>
@@ -51,17 +51,11 @@ export function MaterialsSidebar({
 
       {/* Tabs */}
       <div className="flex px-3 pt-3 pb-0 gap-1">
-        <TabButton
-          active={activeTab === "document"}
-          onClick={() => onTabChange("document")}
-        >
-          Sections
+        <TabButton active={activeTab === "document"} onClick={() => onTabChange("document")}>
+          Разделы
         </TabButton>
-        <TabButton
-          active={activeTab === "notes"}
-          onClick={() => onTabChange("notes")}
-        >
-          Study Notes
+        <TabButton active={activeTab === "notes"} onClick={() => onTabChange("notes")}>
+          Заметки
           {studyNotes.length > 0 && (
             <Badge variant="brand" className="ml-1.5 text-[10px] px-1.5 py-0">
               {studyNotes.length}
@@ -156,11 +150,11 @@ function SectionList({
 }
 
 const NOTE_TYPE_LABELS: Record<StudyNote["type"], string> = {
-  explanation: "Explanation",
-  summary: "Summary",
-  flashcards: "Flashcards",
-  quiz: "Quiz",
-  note: "Note",
+  explanation: "Объяснение",
+  summary: "Конспект",
+  flashcards: "Карточки",
+  quiz: "Тест",
+  note: "Заметка",
 };
 
 function NotesList({ studyNotes, onDelete }: { studyNotes: StudyNote[]; onDelete: (id: string) => void }) {
@@ -178,7 +172,7 @@ function NotesList({ studyNotes, onDelete }: { studyNotes: StudyNote[]; onDelete
       <div className="px-4 py-8 text-center">
         <StickyNote size={24} className="text-[var(--text-3)] mx-auto mb-2" />
         <p className="text-xs text-[var(--text-3)] leading-relaxed">
-          Save AI explanations here using the <strong>Save</strong> button in the tutor panel.
+          Сохраняй объяснения AI кнопкой <strong>Сохранить</strong> в панели тьютора.
         </p>
       </div>
     );
@@ -198,7 +192,7 @@ function NotesList({ studyNotes, onDelete }: { studyNotes: StudyNote[]; onDelete
                   <button
                     onClick={() => copyNote(note)}
                     className="p-1 rounded hover:bg-black/5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
-                    title="Copy"
+                    title="Скопировать"
                   >
                     {copied === note.id ? (
                       <Check size={11} className="text-emerald-500" />
@@ -209,7 +203,7 @@ function NotesList({ studyNotes, onDelete }: { studyNotes: StudyNote[]; onDelete
                   <button
                     onClick={() => onDelete(note.id)}
                     className="p-1 rounded hover:bg-red-50 text-[var(--text-3)] hover:text-red-500 transition-colors"
-                    title="Delete"
+                    title="Удалить"
                   >
                     <Trash2 size={11} />
                   </button>

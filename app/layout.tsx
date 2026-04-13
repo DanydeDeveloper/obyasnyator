@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Объяснятор — AI tutor for your notes",
+  title: "Объяснятор — AI-тьютор для твоих конспектов",
   description:
-    "Upload any study material and learn with an AI tutor grounded in your own content.",
+    "Загрузи любой учебный материал и учись с AI-тьютором, который работает по твоему контенту.",
 };
 
 export default function RootLayout({
