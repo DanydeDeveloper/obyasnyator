@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base: #f7f6f2;
+    --bg-sidebar: #efece6;
+    --bg-surface: #ffffff;
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.13);
+    --text-1: #111110;
+    --text-2: #65635e;
+    --text-3: #a8a49e;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-muted: #eef2ff;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-1);
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.22);
+  }
+
+  /* Prose-style document content */
+  .doc-content h1,
+  .doc-content h2,
+  .doc-content h3 {
+    font-weight: 600;
+    color: var(--text-1);
+    margin-top: 1.6em;
+    margin-bottom: 0.4em;
+    line-height: 1.35;
+  }
+  .doc-content h1 { font-size: 1.25rem; }
+  .doc-content h2 { font-size: 1.1rem; }
+  .doc-content h3 { font-size: 1rem; }
+
+  .doc-content p {
+    line-height: 1.75;
+    color: var(--text-1);
+    margin-bottom: 0.9em;
+  }
+
+  .doc-content strong {
+    font-weight: 600;
+  }
+
+  /* Markdown-style rendered content in AI messages */
+  .prose-ai p { margin-bottom: 0.75em; line-height: 1.7; }
+  .prose-ai p:last-child { margin-bottom: 0; }
+  .prose-ai strong { font-weight: 600; }
+  .prose-ai em { font-style: italic; color: var(--text-2); }
+  .prose-ai ul { margin: 0.5em 0 0.75em 1.2em; list-style: disc; }
+  .prose-ai ol { margin: 0.5em 0 0.75em 1.2em; list-style: decimal; }
+  .prose-ai li { margin-bottom: 0.3em; line-height: 1.65; }
+  .prose-ai code {
+    font-family: "Fira Mono", "Cascadia Code", monospace;
+    font-size: 0.875em;
+    background: rgba(0,0,0,0.06);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
