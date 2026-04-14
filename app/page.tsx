@@ -128,8 +128,7 @@ export default function LandingPage() {
         <div className="w-full max-w-2xl space-y-10">
           <div className="text-center space-y-3">
             <h1 className="text-4xl font-bold tracking-tight text-[var(--text-1)] leading-tight">
-              Твои конспекты,{" "}
-              <span className="text-brand-600">объяснённые AI</span>
+              Мы объясним твои конспекты
             </h1>
             <p className="text-lg text-[var(--text-2)] leading-relaxed max-w-lg mx-auto">
               Загрузи любой учебный материал и получай пошаговые объяснения,
