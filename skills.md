@@ -1,145 +1,102 @@
 # Skills — Объяснятор
 
-Рабочие инструкции и навыки для работы над проектом Объяснятор.
-Этот файл помогает держать контекст и быстро ориентироваться в задачах.
+Навыки и рабочие инструкции для работы с проектом.
 
 ---
 
 ## Контекст проекта
 
-Документация проекта находится в `/docs/`:
-- [product-overview.md](docs/product-overview.md) — что такое продукт, проблема, отличие от "чата с PDF"
-- [features.md](docs/features.md) — описание всех фич, что делать/не делать
-- [architecture.md](docs/architecture.md) — стек, структура файлов, data flow
-- [user-scenarios.md](docs/user-scenarios.md) — аудитория, user journeys, JTBD
-- [mvp-scope.md](docs/mvp-scope.md) — скоуп V1, приоритеты, спринты
-
-**Перед началом работы над новой фичей — прочитать соответствующий раздел в docs.**
+Документация в `/docs/`:
+- [product-overview.md](docs/product-overview.md) — что такое продукт
+- [features.md](docs/features.md) — фичи, что делать / не делать
+- [architecture.md](docs/architecture.md) — стек, структура, data flow
+- [user-scenarios.md](docs/user-scenarios.md) — аудитория, сценарии
+- [mvp-scope.md](docs/mvp-scope.md) — скоуп V1, приоритеты
 
 ---
 
-## Работа с AI Tutor
+## AI — правила работы с тьютором
 
-Tutor Engine использует Claude API. Правила промптинга:
+**System prompt должен включать:**
+- Роль: отвечать ТОЛЬКО по материалу пользователя
+- Контекст: релевантные чанки документа
+- Язык: отвечать на языке пользователя
+- Стиль: пошагово, с **жирным** для терминов
 
-### System prompt должен включать:
-- Роль: "Ты AI-тьютор. Работаешь только с материалом пользователя."
-- Контекст документа (retrieved chunks или full text)
-- Режим: explain / quiz / flashcards / practice / socratic
-- Язык ответа: русский (если пользователь пишет по-русски)
+**Модели:**
+| Задача | Модель |
+|--------|--------|
+| Чат тьютора | `claude-sonnet-4-6` |
+| Квиз, карточки, практика | `claude-haiku-4-5-20251001` |
 
-### Режимы и их поведение:
-| Режим | Поведение AI |
-|-------|-------------|
-| Explain | Объясняет шаг за шагом, ссылается на текст документа |
-| Quiz | Задаёт вопрос → ждёт ответ → даёт feedback |
-| Flashcards | Возвращает JSON: `[{front, back}]` |
-| Practice problems | Возвращает задачи с решениями |
-| Socratic | Не даёт ответ сразу, задаёт наводящие вопросы |
-
-### Structured output для карточек и квизов:
-Использовать `response_format` или явно просить JSON в промпте, парсить на сервере.
+**Retrieval (lib/ai.ts → tutor route):**
+- Keyword scoring по чанкам без embeddings
+- Top-4 релевантных чанка в контекст
+- Восстанавливаем оригинальный порядок чанков
 
 ---
 
-## PDF Parsing
-
-Используем `pdf-parse` (Node.js) или `pdfjs-dist`.
+## PDF парсинг
 
 ```ts
-// lib/pdf-parser.ts
-import pdfParse from 'pdf-parse';
-
-export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  const data = await pdfParse(buffer);
-  return data.text;
-}
+import pdfParse from "pdf-parse";
+const result = await pdfParse(buffer);
+const text = result.text;
 ```
 
-Chunking: делить по страницам или по заголовкам (regex на H1/H2 паттерны). Размер чанка ~500-1000 токенов.
+Chunking (`app/api/upload/route.ts`):
+- Разбивка по двойным переносам + заголовкам
+- Fallback: чанки по ~800 символов с 50-символьным перекрытием
+- Label = первая строка чанка (до 80 символов)
 
 ---
 
-## RAG vs Full Context
+## Structured output (квиз, карточки, практика)
 
-**MVP стратегия:**
-- Если документ < 50k токенов — передавать весь текст в контекст (проще, надёжнее)
-- Если > 50k токенов — переходить на RAG с embeddings
+Haiku возвращает JSON без markdown-обёртки если попросить явно:
+```
+Return ONLY a JSON array, no markdown, no explanation.
+```
 
-Для переключения использовать флаг в `lib/claude.ts`:
+Всегда парсим через `parseJSON()` из `lib/ai.ts` — он стрипает ```json блоки если вдруг появятся.
+
+---
+
+## Сессия и состояние
+
+- Документ хранится в `sessionStorage` как `__doc__`
+- Демо-режим: `sessionStorage.__demo__ = "1"`
+- Чат и заметки: `sessionStorage` через `lib/session.ts`
+- При каждом изменении — автосохранение в `useEffect`
+
+---
+
+## UI компоненты
+
+**Workspace layout:**
+```
+[MaterialsSidebar 240px] | [DocumentViewer flex-1] | [TutorPanel 360px]
+```
+
+**Добавить модал:**
+1. Создай компонент с `<Modal>` из `components/ui/Modal.tsx`
+2. Добавь `open/onClose/docName/chunks` в props
+3. Добавь state в `workspace/page.tsx`: `openModal`
+4. Рендери под `<PracticeModal />`
+
+**Toast уведомления:**
 ```ts
-const USE_RAG = extractedText.length > 50_000;
+const { toast, show: showToast, dismiss } = useToast();
+showToast("Сообщение");
 ```
 
 ---
 
-## Компоненты UI
+## Что проверять перед деплоем
 
-### Workspace layout
-```
-[MaterialsSidebar] | [DocumentViewer] | [TutorPanel]
-  200px fixed          flex-1               380px fixed
-```
-
-Брейкпоинт mobile: скрывать sidebar, DocumentViewer → accordion, TutorPanel → full screen.
-
-### TutorPanel
-- Сверху: кнопки режимов (Explain / Quiz / Flashcards / Practice)
-- Средина: чат (messages list)
-- Снизу: input + send
-
-### DocumentViewer
-- Рендерить extracted text (не PDF iframe — для лёгкости)
-- Поддерживать выделение текста → кнопка "Explain this" появляется над выделением
-
----
-
-## Команды разработки
-
-```bash
-# Установка зависимостей
-npm install
-
-# Dev server
-npm run dev
-
-# Build
-npm run build
-
-# Type check
-npm run type-check
-
-# Lint
-npm run lint
-```
-
----
-
-## Переменные окружения
-
-```env
-# .env.local
-ANTHROPIC_API_KEY=...
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
----
-
-## Что проверять перед сдачей фичи
-
-1. Загрузить тестовый PDF (любая лекция) — текст извлекается корректно
-2. Tutor отвечает только по материалу документа (не галлюцинирует)
-3. Flashcards / Quiz возвращают валидный JSON, рендерятся в UI
-4. Study Notes сохраняются в localStorage между обновлениями страницы
-5. Loading states и error states показываются корректно
-6. Мобильный вид не сломан
-
----
-
-## Стиль кода
-
-- TypeScript strict mode
-- Tailwind для стилей (без CSS modules)
-- Server Components где возможно, Client Components только где нужен state/events
-- Route Handlers в `app/api/` для AI-запросов (не выставлять API ключи на клиент)
-- Обработка ошибок на уровне API routes, пробрасывать понятные сообщения на UI
+1. `npm run type-check` — 0 ошибок
+2. Демо-режим работает (`/workspace?demo`)
+3. Загрузка PDF — текст извлекается
+4. Квиз/карточки/практика — модалы открываются
+5. Сохранение заметок + экспорт
+6. Нет консольных ошибок
