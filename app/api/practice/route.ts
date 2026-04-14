@@ -16,23 +16,23 @@ export async function POST(req: NextRequest) {
     const response = await anthropic.messages.create({
       model: GEN_MODEL,
       max_tokens: 2048,
-      system: "You are an expert educator. Create practice problems based ONLY on the provided material. Return only valid JSON, no markdown.",
+      system: "Ты опытный педагог. Создавай практические задачи ТОЛЬКО на основе предоставленного материала. Все задачи, подсказки и решения должны быть на русском языке. Возвращай только валидный JSON, без markdown.",
       messages: [{
         role: "user",
-        content: `Generate exactly ${count} practice problems from this material.
+        content: `Сгенерируй ровно ${count} практических задачи по этому материалу. Всё — на русском языке.
 
-Return ONLY a JSON array:
+Верни ТОЛЬКО JSON-массив:
 [
   {
-    "question": "Full problem statement",
-    "hints": ["Gentle first hint", "More specific second hint"],
-    "solution": "Complete solution with explanation"
+    "question": "Полная формулировка задачи",
+    "hints": ["Мягкая первая подсказка", "Более конкретная вторая подсказка"],
+    "solution": "Полное решение с объяснением"
   }
 ]
 
-Rules: require applying knowledge (not just recall), exactly 2 hints each, problems answerable from material only.
+Правила: задачи должны требовать применения знаний (не просто припоминания), ровно 2 подсказки к каждой, задачи должны решаться только на основе материала.
 
-MATERIAL:
+МАТЕРИАЛ:
 ${buildContext(chunks)}`,
       }],
     });

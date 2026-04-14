@@ -16,22 +16,22 @@ export async function POST(req: NextRequest) {
     const response = await anthropic.messages.create({
       model: GEN_MODEL,
       max_tokens: 2048,
-      system: "You are an expert educator. Create flashcards based ONLY on the provided material. Return only valid JSON, no markdown.",
+      system: "Ты опытный педагог. Создавай карточки ТОЛЬКО на основе предоставленного материала. Все карточки должны быть на русском языке. Возвращай только валидный JSON, без markdown.",
       messages: [{
         role: "user",
-        content: `Generate exactly ${count} flashcards from this material.
+        content: `Сгенерируй ровно ${count} карточек по этому материалу. Все вопросы и ответы — на русском языке.
 
-Return ONLY a JSON array:
+Верни ТОЛЬКО JSON-массив:
 [
   {
-    "front": "Question or term (max 15 words)",
-    "back": "Answer or definition (1-3 sentences)"
+    "front": "Вопрос или термин (максимум 15 слов)",
+    "back": "Ответ или определение (1-3 предложения)"
   }
 ]
 
-Rules: cover the most important concepts, mix definition/concept/application cards.
+Правила: охвати самые важные концепции, чередуй карточки на определения, понятия и применение.
 
-MATERIAL:
+МАТЕРИАЛ:
 ${buildContext(chunks)}`,
       }],
     });
